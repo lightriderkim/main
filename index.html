@@ -494,6 +494,218 @@
     .btn-delete:hover { background: #3a1a1a; }
 
     /* ── ANIMATIONS ──────────────────────────────────── */
+    css    /* ── COMMUNITY BOARD ─────────────────────────────── */
+    #community { background: var(--bg2); }
+
+    .board-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px; margin-bottom: 32px;
+    }
+    .board-search {
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border); padding-bottom: 8px;
+    }
+    .board-search input {
+      background: transparent; border: none; outline: none;
+      font-family: var(--font-body); font-size: 14px; color: var(--gray1); width: 220px;
+    }
+    .board-search input::placeholder { color: var(--gray3); }
+    .btn-write {
+      font-family: var(--font-head); font-size: 12px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      padding: 11px 28px; background: var(--white); color: var(--bg);
+      border: none; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-write:hover { background: var(--gray1); }
+
+    .board-table { width: 100%; border-collapse: collapse; }
+    .board-table thead tr { border-bottom: 1px solid var(--border); }
+    .board-table th {
+      font-family: var(--font-head); font-size: 11px; font-weight: 600;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray3);
+      text-align: left; padding: 12px 16px; white-space: nowrap;
+    }
+    .board-table tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer; transition: background 0.15s;
+    }
+    .board-table tbody tr:hover { background: var(--surface); }
+    .board-table td { padding: 16px; font-size: 14px; color: var(--gray2); vertical-align: middle; }
+    .post-num { color: var(--gray3); font-size: 13px; width: 48px; }
+    .post-title-cell { color: var(--white); font-weight: 400; display: flex; align-items: center; gap: 10px; }
+    .badge-private {
+      font-family: var(--font-head); font-size: 10px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 2px 8px; border: 1px solid var(--gray3); color: var(--gray3); white-space: nowrap;
+    }
+    .badge-new {
+      font-family: var(--font-head); font-size: 10px; font-weight: 700;
+      letter-spacing: 0.1em; color: #f0a500; white-space: nowrap;
+    }
+    .board-empty {
+      text-align: center; padding: 80px 24px;
+      font-family: var(--font-head); font-size: 13px;
+      letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray3);
+    }
+
+    /* 게시글 오버레이 (글쓰기 / 글보기 공용) */
+    .board-overlay {
+      display: none; position: fixed; inset: 0; z-index: 1800;
+      background: rgba(0,0,0,0.88); backdrop-filter: blur(10px);
+      align-items: flex-start; justify-content: center;
+      padding: 80px 24px 60px; overflow-y: auto;
+    }
+    .board-overlay.active { display: flex; }
+    .board-card {
+      background: var(--surface); border: 1px solid var(--border);
+      width: 100%; max-width: 760px; animation: fadeUp 0.25s ease;
+    }
+    .board-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 32px; border-bottom: 1px solid var(--border);
+    }
+    .board-card-title {
+      font-family: var(--font-head); font-size: 18px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--white);
+    }
+    .board-card-close {
+      background: transparent; border: none; color: var(--gray3);
+      font-size: 20px; cursor: pointer; line-height: 1; padding: 4px 8px; transition: color 0.2s;
+    }
+    .board-card-close:hover { color: var(--white); }
+    .board-card-body { padding: 32px; }
+
+    /* 폼 필드 */
+    .bf-field { margin-bottom: 20px; }
+    .bf-label {
+      display: block; font-family: var(--font-head); font-size: 11px; font-weight: 600;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray3); margin-bottom: 8px;
+    }
+    .bf-input {
+      width: 100%; background: var(--bg3); border: 1px solid var(--border);
+      color: var(--white); font-family: var(--font-body); font-size: 14px;
+      padding: 10px 14px; outline: none; transition: border-color 0.2s;
+    }
+    .bf-input:focus { border-color: var(--gray2); }
+    .bf-textarea {
+      width: 100%; background: var(--bg3); border: 1px solid var(--border);
+      color: var(--white); font-family: var(--font-body); font-size: 14px;
+      padding: 10px 14px; outline: none; resize: vertical; min-height: 200px;
+      line-height: 1.7; transition: border-color 0.2s;
+    }
+    .bf-textarea:focus { border-color: var(--gray2); }
+    .bf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* 공개/비공개 토글 */
+    .visibility-toggle { display: flex; border: 1px solid var(--border); overflow: hidden; width: fit-content; }
+    .vis-btn {
+      font-family: var(--font-head); font-size: 11px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 9px 22px; background: transparent; color: var(--gray3);
+      border: none; cursor: pointer; transition: all 0.2s;
+    }
+    .vis-btn.active { background: var(--white); color: var(--bg); }
+    .vis-btn:not(.active):hover { color: var(--white); }
+
+    /* 글보기 */
+    .post-view-meta {
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border);
+    }
+    .post-view-author {
+      font-family: var(--font-head); font-size: 17px; font-weight: 700;
+      color: var(--white); letter-spacing: 0.06em;
+    }
+    .post-view-affil {
+      font-family: var(--font-head); font-size: 11px; font-weight: 600;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--gray3); border: 1px solid var(--border); padding: 2px 10px;
+    }
+    .post-view-date { font-size: 12px; color: var(--gray3); }
+    .post-view-subject {
+      font-family: var(--font-head); font-size: 22px; font-weight: 700;
+      color: var(--white); letter-spacing: 0.04em; margin-bottom: 20px;
+    }
+    .post-view-body {
+      font-size: 15px; color: var(--gray1); line-height: 1.85;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .post-view-actions {
+      display: flex; gap: 12px; margin-top: 32px;
+      padding-top: 24px; border-top: 1px solid var(--border);
+    }
+
+    /* 비밀글 잠금 화면 */
+    .pw-gate { text-align: center; padding: 48px 0; }
+    .pw-gate-icon { font-size: 32px; margin-bottom: 16px; opacity: 0.4; }
+    .pw-gate p {
+      font-family: var(--font-head); font-size: 13px; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--gray3); margin-bottom: 20px;
+    }
+    .pw-gate-row { display: flex; gap: 8px; justify-content: center; max-width: 320px; margin: 0 auto; }
+
+    /* 댓글 */
+    .comment-section { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--border); }
+    .comment-section-title {
+      font-family: var(--font-head); font-size: 12px; font-weight: 600;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray3); margin-bottom: 20px;
+    }
+    .comment-item { padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .comment-item:last-child { border-bottom: none; }
+    .comment-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .comment-author { font-family: var(--font-head); font-size: 13px; font-weight: 700; color: var(--white); }
+    .comment-date { font-size: 11px; color: var(--gray3); }
+    .comment-body { font-size: 13px; color: var(--gray2); line-height: 1.7; }
+    .comment-delete {
+      margin-left: auto; background: transparent; border: none;
+      color: var(--gray3); font-size: 11px; cursor: pointer; transition: color 0.2s; padding: 0 4px;
+    }
+    .comment-delete:hover { color: #ff5555; }
+    .comment-form { display: flex; gap: 8px; margin-top: 20px; }
+    .comment-name-input {
+      background: var(--bg3); border: 1px solid var(--border); color: var(--white);
+      font-family: var(--font-body); font-size: 13px; padding: 9px 12px; outline: none;
+      width: 130px; transition: border-color 0.2s; flex-shrink: 0;
+    }
+    .comment-name-input:focus { border-color: var(--gray2); }
+    .comment-input {
+      flex: 1; background: var(--bg3); border: 1px solid var(--border); color: var(--white);
+      font-family: var(--font-body); font-size: 13px; padding: 9px 12px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .comment-input:focus { border-color: var(--gray2); }
+    .comment-submit {
+      font-family: var(--font-head); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 9px 18px; background: var(--white); color: var(--bg);
+      border: none; cursor: pointer; white-space: nowrap; transition: background 0.2s;
+    }
+    .comment-submit:hover { background: var(--gray1); }
+
+    /* 공용 버튼 */
+    .btn-post-submit {
+      font-family: var(--font-head); font-size: 13px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 13px 36px; background: var(--white); color: var(--bg);
+      border: none; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-post-submit:hover { background: var(--gray1); }
+    .btn-post-cancel {
+      font-family: var(--font-head); font-size: 12px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 12px 24px; background: transparent; color: var(--gray2);
+      border: 1px solid var(--border); cursor: pointer; transition: all 0.2s;
+    }
+    .btn-post-cancel:hover { color: var(--white); border-color: var(--gray2); }
+    .btn-post-delete {
+      font-family: var(--font-head); font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 10px 18px; background: transparent; color: #ff5555;
+      border: 1px solid #3a1a1a; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-post-delete:hover { background: #3a1a1a; }
+    .form-error { color: #ff5555; font-size: 12px; margin-top: 10px; display: none; }
+    .pw-hint { font-size: 12px; color: var(--gray3); margin-top: 6px; }
     .fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
     .fade-in.visible { opacity: 1; transform: translateY(0); }
 
@@ -727,81 +939,104 @@
   </div>
 </section>
 </div>
-<!-- ══ GUESTBOARD ══════════════════════════════════════ -->
+<!-- ══ COMMUNITY BOARD ════════════════════════════════ -->
 <div class="divider"></div>
-<div id="guestboard">
+<div id="community">
 <section>
   <p class="section-eyebrow fade-in">Community</p>
-  <h2 class="section-title fade-in">Leave a Message</h2>
+  <h2 class="section-title fade-in">Discussion Board</h2>
   <p class="section-body fade-in" style="margin-bottom:48px;">
-    Questions, feedback, or anything on your mind — feel free to leave a short note.
+    Share your thoughts, ask questions, and discuss vehicle dynamics topics with the community.
   </p>
 
-  <!-- 작성 폼 -->
-  <div style="
-    background: var(--surface); border: 1px solid var(--border);
-    padding: 32px; margin-bottom: 48px;
-  " class="fade-in">
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-      <div>
-        <label style="
-          display:block; font-family:'Barlow Condensed',sans-serif;
-          font-size:11px; font-weight:600; letter-spacing:0.2em;
-          text-transform:uppercase; color:var(--gray3); margin-bottom:8px;
-        ">Name</label>
-        <input id="gb-name" type="text" placeholder="Your name" style="
-          width:100%; background:var(--bg3); border:1px solid var(--border);
-          color:var(--white); font-family:'Barlow',sans-serif; font-size:14px;
-          padding:10px 14px; outline:none; transition:border-color 0.2s;
-        " onfocus="this.style.borderColor='var(--gray2)'" onblur="this.style.borderColor='var(--border)'" />
-      </div>
-      <div>
-        <label style="
-          display:block; font-family:'Barlow Condensed',sans-serif;
-          font-size:11px; font-weight:600; letter-spacing:0.2em;
-          text-transform:uppercase; color:var(--gray3); margin-bottom:8px;
-        ">Affiliation <span style="color:var(--gray3);font-weight:300;">(optional)</span></label>
-        <input id="gb-affil" type="text" placeholder="Company / University" style="
-          width:100%; background:var(--bg3); border:1px solid var(--border);
-          color:var(--white); font-family:'Barlow',sans-serif; font-size:14px;
-          padding:10px 14px; outline:none; transition:border-color 0.2s;
-        " onfocus="this.style.borderColor='var(--gray2)'" onblur="this.style.borderColor='var(--border)'" />
-      </div>
+  <!-- 툴바 -->
+  <div class="board-toolbar fade-in">
+    <div class="board-search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+      </svg>
+      <input type="text" id="board-search-input" placeholder="Search posts…" oninput="renderBoard()" />
     </div>
-    <div style="margin-bottom:20px;">
-      <label style="
-        display:block; font-family:'Barlow Condensed',sans-serif;
-        font-size:11px; font-weight:600; letter-spacing:0.2em;
-        text-transform:uppercase; color:var(--gray3); margin-bottom:8px;
-      ">Message <span style="color:var(--gray3);font-weight:300;">(max 200 chars)</span></label>
-      <textarea id="gb-msg" maxlength="200" placeholder="Leave your message here…" style="
-        width:100%; background:var(--bg3); border:1px solid var(--border);
-        color:var(--white); font-family:'Barlow',sans-serif; font-size:14px;
-        padding:10px 14px; outline:none; resize:vertical; min-height:90px;
-        transition:border-color 0.2s; line-height:1.6;
-      " onfocus="this.style.borderColor='var(--gray2)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-      <div style="text-align:right; font-size:11px; color:var(--gray3); margin-top:4px;">
-        <span id="gb-charcount">0</span> / 200
-      </div>
-    </div>
-    <button onclick="submitGuestPost()" style="
-      font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700;
-      letter-spacing:0.12em; text-transform:uppercase;
-      padding:13px 36px; background:var(--white); color:var(--bg);
-      border:none; cursor:pointer; transition:background 0.2s;
-    " onmouseover="this.style.background='var(--gray1)'" onmouseout="this.style.background='var(--white)'">
-      Post Message
-    </button>
-    <span id="gb-error" style="
-      display:none; margin-left:16px; font-size:13px; color:#ff5555;
-      font-family:'Barlow',sans-serif;
-    "></span>
+    <button class="btn-write" onclick="openWriteForm()">+ Write Post</button>
   </div>
 
-  <!-- 게시글 목록 -->
-  <div id="gb-list"></div>
-
+  <!-- 게시글 목록 테이블 -->
+  <div id="board-list-wrap">
+    <div class="board-empty" id="board-empty" style="display:none;">
+      No posts yet. Be the first to start a discussion.
+    </div>
+    <table class="board-table" id="board-table">
+      <thead>
+        <tr>
+          <th style="width:48px;">#</th>
+          <th>Subject</th>
+          <th style="width:140px;">Author</th>
+          <th style="width:100px;">Date</th>
+          <th style="width:64px;">Comments</th>
+        </tr>
+      </thead>
+      <tbody id="board-tbody"></tbody>
+    </table>
+  </div>
 </section>
+</div>
+
+<!-- 글쓰기 오버레이 -->
+<div class="board-overlay" id="write-overlay">
+  <div class="board-card">
+    <div class="board-card-header">
+      <div class="board-card-title">New Post</div>
+      <button class="board-card-close" onclick="closeWriteForm()">✕</button>
+    </div>
+    <div class="board-card-body">
+      <div class="bf-row" style="margin-bottom:20px;">
+        <div class="bf-field" style="margin-bottom:0;">
+          <label class="bf-label">Name</label>
+          <input class="bf-input" id="write-name" type="text" placeholder="Your name" />
+        </div>
+        <div class="bf-field" style="margin-bottom:0;">
+          <label class="bf-label">Affiliation <span style="color:var(--gray3);font-weight:300;">(optional)</span></label>
+          <input class="bf-input" id="write-affil" type="text" placeholder="Company / University" />
+        </div>
+      </div>
+      <div class="bf-field">
+        <label class="bf-label">Subject</label>
+        <input class="bf-input" id="write-subject" type="text" placeholder="Post title" />
+      </div>
+      <div class="bf-field">
+        <label class="bf-label">Content</label>
+        <textarea class="bf-textarea" id="write-content" placeholder="Write your post here…"></textarea>
+      </div>
+      <div class="bf-field">
+        <label class="bf-label">Visibility</label>
+        <div class="visibility-toggle">
+          <button class="vis-btn active" id="vis-public" onclick="setVisibility('public')">🌐 Public</button>
+          <button class="vis-btn" id="vis-private" onclick="setVisibility('private')">🔒 Private</button>
+        </div>
+        <div class="pw-hint" id="pw-hint-row" style="display:none; margin-top:12px;">
+          <label class="bf-label" style="margin-bottom:6px;">Post Password <span style="font-weight:300;">(readers need this to view)</span></label>
+          <input class="bf-input" id="write-pw" type="password" placeholder="Set a password for this post" style="max-width:280px;" />
+        </div>
+      </div>
+      <div id="write-error" class="form-error"></div>
+      <div style="display:flex; gap:12px; margin-top:8px;">
+        <button class="btn-post-submit" onclick="submitPost()">Publish</button>
+        <button class="btn-post-cancel" onclick="closeWriteForm()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 글보기 오버레이 -->
+<div class="board-overlay" id="view-overlay">
+  <div class="board-card">
+    <div class="board-card-header">
+      <div class="board-card-title" id="view-overlay-title">Post</div>
+      <button class="board-card-close" onclick="closeViewOverlay()">✕</button>
+    </div>
+    <div class="board-card-body" id="view-overlay-body"></div>
+  </div>
+</div>
 </div>
 <!-- ══ FOOTER ══════════════════════════════════════════ -->
 <footer>
@@ -935,18 +1170,21 @@
       <tbody id="admin-tbody"></tbody>
     </table>
 
-    <!-- Guest Messages -->
-    <div class="admin-section-title" style="margin-top:60px;">Guest Messages</div>
+    <!-- Community Posts -->
+    <div class="admin-section-title" style="margin-top:60px;">Community Posts</div>
     <table class="admin-file-table">
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Message</th>
+          <th>#</th>
+          <th>Subject</th>
+          <th>Author</th>
+          <th>Visibility</th>
+          <th>Comments</th>
           <th>Date</th>
           <th></th>
         </tr>
       </thead>
-      <tbody id="admin-gb-tbody"></tbody>
+      <tbody id="admin-board-tbody"></tbody>
     </table>
 
   </div>
@@ -1143,7 +1381,7 @@
     document.getElementById('admin-panel').classList.add('active');
     document.body.style.overflow = 'hidden';
     renderAdminTable();
-    renderAdminGuestboard();
+    renderAdminBoard();
     refreshStats();
   }
   function closeAdmin() {
@@ -1207,96 +1445,250 @@
     refreshStats();
     alert('공개 숫자가 적용되었습니다.');
   }
-/* ── GUESTBOARD ── */
-  let gbPosts = load('vd_gb_posts', []);
-  // [{id, name, affil, msg, date}]
+ /* ── COMMUNITY BOARD ── */
+  let posts = load('vd_posts', []);
+  if (!Array.isArray(posts)) posts = [];
+  // post: { id, name, affil, subject, content, visibility, pw, date, comments:[{id,name,text,date}] }
 
-  document.getElementById('gb-msg').addEventListener('input', function() {
-    document.getElementById('gb-charcount').textContent = this.value.length;
-  });
+  let currentVisibility = 'public';
+  function setVisibility(v) {
+    currentVisibility = v;
+    document.getElementById('vis-public').classList.toggle('active', v === 'public');
+    document.getElementById('vis-private').classList.toggle('active', v === 'private');
+    document.getElementById('pw-hint-row').style.display = v === 'private' ? 'block' : 'none';
+  }
 
-  function submitGuestPost() {
-    const name  = document.getElementById('gb-name').value.trim();
-    const affil = document.getElementById('gb-affil').value.trim();
-    const msg   = document.getElementById('gb-msg').value.trim();
-    const err   = document.getElementById('gb-error');
+  function openWriteForm() {
+    document.getElementById('write-name').value = '';
+    document.getElementById('write-affil').value = '';
+    document.getElementById('write-subject').value = '';
+    document.getElementById('write-content').value = '';
+    document.getElementById('write-pw').value = '';
+    document.getElementById('write-error').style.display = 'none';
+    setVisibility('public');
+    document.getElementById('write-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeWriteForm() {
+    document.getElementById('write-overlay').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  function closeViewOverlay() {
+    document.getElementById('view-overlay').classList.remove('active');
+    document.body.style.overflow = '';
+  }
 
-    if (!name) { err.textContent = 'Please enter your name.'; err.style.display='inline'; return; }
-    if (!msg)  { err.textContent = 'Please enter a message.'; err.style.display='inline'; return; }
+  function submitPost() {
+    const name    = document.getElementById('write-name').value.trim();
+    const affil   = document.getElementById('write-affil').value.trim();
+    const subject = document.getElementById('write-subject').value.trim();
+    const content = document.getElementById('write-content').value.trim();
+    const pw      = document.getElementById('write-pw').value;
+    const err     = document.getElementById('write-error');
+
+    if (!name)    { err.textContent = 'Please enter your name.';    err.style.display='block'; return; }
+    if (!subject) { err.textContent = 'Please enter a subject.';    err.style.display='block'; return; }
+    if (!content) { err.textContent = 'Please enter your content.'; err.style.display='block'; return; }
+    if (currentVisibility === 'private' && !pw) { err.textContent = 'Please set a password for private post.'; err.style.display='block'; return; }
     err.style.display = 'none';
 
     const post = {
-      id:    'gb_' + Date.now(),
-      name,
-      affil,
-      msg,
-      date:  new Date().toISOString().slice(0,10)
+      id: 'p_' + Date.now(),
+      name, affil, subject, content,
+      visibility: currentVisibility,
+      pw: currentVisibility === 'private' ? pw : '',
+      date: new Date().toISOString().slice(0, 10),
+      comments: []
     };
-    gbPosts.unshift(post);
-    save('vd_gb_posts', gbPosts);
-
-    document.getElementById('gb-name').value  = '';
-    document.getElementById('gb-affil').value = '';
-    document.getElementById('gb-msg').value   = '';
-    document.getElementById('gb-charcount').textContent = '0';
-
-    renderGuestboard();
+    posts.unshift(post);
+    save('vd_posts', posts);
+    closeWriteForm();
+    renderBoard();
+    if (document.getElementById('admin-panel').classList.contains('active')) renderAdminBoard();
   }
 
-  function deleteGuestPost(id) {
-    gbPosts = gbPosts.filter(p => p.id !== id);
-    save('vd_gb_posts', gbPosts);
-    renderGuestboard();
-    if (document.getElementById('admin-panel').classList.contains('active')) renderAdminGuestboard();
+  function renderBoard() {
+    const q = (document.getElementById('board-search-input')?.value || '').toLowerCase();
+    const filtered = posts.filter(p =>
+      p.subject.toLowerCase().includes(q) ||
+      p.name.toLowerCase().includes(q) ||
+      (p.visibility === 'public' && p.content.toLowerCase().includes(q))
+    );
+    const tbody  = document.getElementById('board-tbody');
+    const empty  = document.getElementById('board-empty');
+    const table  = document.getElementById('board-table');
+
+    if (!filtered.length) {
+      empty.style.display = 'block'; table.style.display = 'none'; return;
+    }
+    empty.style.display = 'none'; table.style.display = 'table';
+
+    const now = new Date();
+    tbody.innerHTML = filtered.map((p, i) => {
+      const isNew = (now - new Date(p.date)) < 86400000 * 2; // 2일 이내
+      const titleCell = p.visibility === 'private'
+        ? `<span class="post-title-cell">🔒 ${escHtml(p.subject)} <span class="badge-private">Private</span>${isNew ? ' <span class="badge-new">NEW</span>' : ''}</span>`
+        : `<span class="post-title-cell">${escHtml(p.subject)}${isNew ? ' <span class="badge-new">NEW</span>' : ''}</span>`;
+      return `<tr onclick="openPost('${p.id}')">
+        <td class="post-num">${filtered.length - i}</td>
+        <td>${titleCell}</td>
+        <td style="color:var(--gray2);">${escHtml(p.name)}${p.affil ? `<br><span style="font-size:11px;color:var(--gray3);">${escHtml(p.affil)}</span>` : ''}</td>
+        <td style="color:var(--gray3);font-size:13px;">${p.date}</td>
+        <td style="color:var(--gray3);text-align:center;">${p.comments.length}</td>
+      </tr>`;
+    }).join('');
   }
 
-  function renderGuestboard() {
-    const list = document.getElementById('gb-list');
-    if (!gbPosts.length) {
-      list.innerHTML = `<div style="
-        text-align:center; padding:60px 24px;
-        font-family:'Barlow Condensed',sans-serif; font-size:13px;
-        letter-spacing:0.15em; text-transform:uppercase; color:var(--gray3);
-      ">No messages yet. Be the first to leave one.</div>`;
+  function openPost(id) {
+    const p = posts.find(x => x.id === id);
+    if (!p) return;
+
+    // 비공개 글 — 비밀번호 확인 필요 (어드민 패널 열려있으면 바이패스)
+    const isAdminOpen = document.getElementById('admin-panel').classList.contains('active');
+    if (p.visibility === 'private' && !isAdminOpen) {
+      showPwGate(p);
       return;
     }
-    list.innerHTML = gbPosts.map(p => `
-      <div style="
-        border-bottom: 1px solid var(--border); padding: 28px 0;
-        display:flex; justify-content:space-between; align-items:flex-start; gap:24px;
-      ">
-        <div style="flex:1;">
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap;">
-            <span style="
-              font-family:'Barlow Condensed',sans-serif; font-size:15px;
-              font-weight:700; letter-spacing:0.06em; color:var(--white);
-            ">${escHtml(p.name)}</span>
-            ${p.affil ? `<span style="
-              font-family:'Barlow Condensed',sans-serif; font-size:11px;
-              font-weight:600; letter-spacing:0.15em; text-transform:uppercase;
-              color:var(--gray3); border:1px solid var(--border); padding:2px 10px;
-            ">${escHtml(p.affil)}</span>` : ''}
-            <span style="font-size:12px; color:var(--gray3); font-family:'Barlow',sans-serif;">${p.date}</span>
-          </div>
-          <p style="font-size:14px; color:var(--gray2); line-height:1.75; font-weight:300;">${escHtml(p.msg)}</p>
+    showPostView(p);
+  }
+
+  function showPwGate(p) {
+    document.getElementById('view-overlay-title').textContent = 'Private Post';
+    document.getElementById('view-overlay-body').innerHTML = `
+      <div class="pw-gate">
+        <div class="pw-gate-icon">🔒</div>
+        <p>This post is private. Enter the password to view.</p>
+        <div class="pw-gate-row">
+          <input class="bf-input" type="password" id="gate-pw-input" placeholder="Password"
+            onkeydown="if(event.key==='Enter')checkGatePw('${p.id}')"
+            style="flex:1;" />
+          <button class="btn-post-submit" style="padding:10px 20px;" onclick="checkGatePw('${p.id}')">View</button>
         </div>
-      </div>`).join('');
+        <div id="gate-pw-error" style="color:#ff5555;font-size:12px;margin-top:10px;display:none;">Incorrect password.</div>
+      </div>`;
+    document.getElementById('view-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('gate-pw-input')?.focus(), 100);
   }
 
-  /* ── ADMIN GUESTBOARD ── */
-  function renderAdminGuestboard() {
-    const el = document.getElementById('admin-gb-tbody');
+  function checkGatePw(id) {
+    const p = posts.find(x => x.id === id);
+    const entered = document.getElementById('gate-pw-input').value;
+    if (entered === p.pw) {
+      showPostView(p);
+    } else {
+      document.getElementById('gate-pw-error').style.display = 'block';
+    }
+  }
+
+  function showPostView(p) {
+    const isAdminOpen = document.getElementById('admin-panel').classList.contains('active');
+    document.getElementById('view-overlay-title').textContent = p.visibility === 'private' ? '🔒 ' + p.subject : p.subject;
+
+    const commentsHtml = p.comments.length === 0
+      ? `<div style="color:var(--gray3);font-size:13px;padding:16px 0;">No comments yet.</div>`
+      : p.comments.map(c => `
+          <div class="comment-item">
+            <div class="comment-meta">
+              <span class="comment-author">${escHtml(c.name)}</span>
+              <span class="comment-date">${c.date}</span>
+              ${isAdminOpen ? `<button class="comment-delete" onclick="deleteComment('${p.id}','${c.id}')">✕</button>` : ''}
+            </div>
+            <div class="comment-body">${escHtml(c.text)}</div>
+          </div>`).join('');
+
+    document.getElementById('view-overlay-body').innerHTML = `
+      <div class="post-view-meta">
+        <span class="post-view-author">${escHtml(p.name)}</span>
+        ${p.affil ? `<span class="post-view-affil">${escHtml(p.affil)}</span>` : ''}
+        <span class="post-view-date">${p.date}</span>
+        ${p.visibility === 'private' ? `<span class="badge-private">Private</span>` : ''}
+      </div>
+      <div class="post-view-body">${escHtml(p.content)}</div>
+
+      <div class="comment-section">
+        <div class="comment-section-title">Comments (${p.comments.length})</div>
+        <div id="comment-list-${p.id}">${commentsHtml}</div>
+        <div class="comment-form">
+          <input class="comment-name-input" type="text" id="c-name-${p.id}" placeholder="Name" />
+          <input class="comment-input" type="text" id="c-text-${p.id}" placeholder="Leave a comment…"
+            onkeydown="if(event.key==='Enter')addComment('${p.id}')" />
+          <button class="comment-submit" onclick="addComment('${p.id}')">Post</button>
+        </div>
+      </div>
+
+      <div class="post-view-actions">
+        <button class="btn-post-cancel" onclick="closeViewOverlay()">Close</button>
+        ${isAdminOpen ? `<button class="btn-post-delete" onclick="deletePost('${p.id}')">Delete Post</button>` : ''}
+      </div>`;
+
+    document.getElementById('view-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function addComment(postId) {
+    const nameEl = document.getElementById('c-name-' + postId);
+    const textEl = document.getElementById('c-text-' + postId);
+    const name = nameEl.value.trim();
+    const text = textEl.value.trim();
+    if (!name || !text) return;
+
+    const p = posts.find(x => x.id === postId);
+    if (!p) return;
+    p.comments.push({
+      id: 'c_' + Date.now(),
+      name, text,
+      date: new Date().toISOString().slice(0, 10)
+    });
+    save('vd_posts', posts);
+    nameEl.value = '';
+    textEl.value = '';
+    showPostView(p); // 댓글 추가 후 뷰 새로고침
+    renderBoard();
+  }
+
+  function deleteComment(postId, commentId) {
+    const p = posts.find(x => x.id === postId);
+    if (!p) return;
+    p.comments = p.comments.filter(c => c.id !== commentId);
+    save('vd_posts', posts);
+    showPostView(p);
+    renderAdminBoard();
+  }
+
+  function deletePost(id) {
+    if (!confirm('Delete this post?')) return;
+    posts = posts.filter(x => x.id !== id);
+    save('vd_posts', posts);
+    closeViewOverlay();
+    renderBoard();
+    renderAdminBoard();
+  }
+
+  /* ── ADMIN BOARD ── */
+  function renderAdminBoard() {
+    const el = document.getElementById('admin-board-tbody');
     if (!el) return;
-    if (!gbPosts.length) {
-      el.innerHTML = `<tr><td colspan="4" style="color:var(--gray3);padding:24px 16px;font-size:13px;">No messages yet.</td></tr>`;
+    if (!posts.length) {
+      el.innerHTML = `<tr><td colspan="7" style="color:var(--gray3);padding:24px 16px;font-size:13px;">No posts yet.</td></tr>`;
       return;
     }
-    el.innerHTML = gbPosts.map(p => `
+    el.innerHTML = posts.map((p, i) => `
       <tr>
-        <td style="color:var(--white)">${escHtml(p.name)}${p.affil ? ` <span style="color:var(--gray3);font-size:11px;">(${escHtml(p.affil)})</span>` : ''}</td>
-        <td style="color:var(--gray2);max-width:320px;">${escHtml(p.msg)}</td>
-        <td style="color:var(--gray3)">${p.date}</td>
-        <td><button class="btn-delete" onclick="deleteGuestPost('${p.id}')">Delete</button></td>
+        <td style="color:var(--gray3);">${posts.length - i}</td>
+        <td style="color:var(--white);">${escHtml(p.subject)}</td>
+        <td style="color:var(--gray2);">${escHtml(p.name)}</td>
+        <td>${p.visibility === 'private'
+          ? `<span style="color:var(--gray3);font-size:11px;font-family:var(--font-head);letter-spacing:0.1em;">🔒 PRIVATE</span>`
+          : `<span style="color:var(--gray2);font-size:11px;font-family:var(--font-head);letter-spacing:0.1em;">🌐 PUBLIC</span>`}
+        </td>
+        <td style="color:var(--gray3);text-align:center;">${p.comments.length}</td>
+        <td style="color:var(--gray3);">${p.date}</td>
+        <td>
+          <button class="btn-delete" onclick="openPost('${p.id}')">View</button>
+          &nbsp;
+          <button class="btn-delete" onclick="deletePost('${p.id}')">Delete</button>
+        </td>
       </tr>`).join('');
   }
   /* ── INIT ── */
@@ -1304,7 +1696,7 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
   renderLibrary();
-  renderGuestboard();
+  renderBoard();
   refreshStats();
 </script>
 </body>
