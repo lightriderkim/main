@@ -1196,7 +1196,7 @@
   function load(key, def) {
     try {
       const v = localStorage.getItem(key);
-      if (v === null || v === undefined || v === '') return
+      if (v === null || v === undefined || v === '') return def;
       const parsed = JSON.parse(v);
       return parsed !== null && parsed !== undefined ? parsed : def;
     } catch { return def; }
