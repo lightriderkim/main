@@ -6,51 +6,76 @@
   <title>Fundamental VDynamics — Ride & Handling Base Camp</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><rect x='1' y='1' width='30' height='30' fill='none' stroke='%23ffffff' stroke-width='1'/><text x='7' y='23' font-family='Barlow Condensed,sans-serif' font-weight='700' font-size='22' fill='white' letter-spacing='-1'>F</text><line x1='7' y1='13' x2='18' y2='13' stroke='white' stroke-width='1.5'/></svg>" />
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK (type=module) -->
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getDatabase, ref, runTransaction, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+    import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getDatabase, ref, runTransaction,
+             onValue, set, remove }                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-    const FIREBASE_URL = 'https://vdynamics-ee2e8-default-rtdb.asia-southeast1.firebasedatabase.app';
-    const app = initializeApp({ databaseURL: FIREBASE_URL });
+    const DB_URL = 'https://vdynamics-ee2e8-default-rtdb.asia-southeast1.firebasedatabase.app';
+    const app = initializeApp({ databaseURL: DB_URL });
     const db  = getDatabase(app);
 
-    // 방문자 카운트 — 세션당 1회
+    /* ── 방문자 카운트 (세션당 1회) ── */
     if (!sessionStorage.getItem('fv_visited')) {
       sessionStorage.setItem('fv_visited', '1');
       runTransaction(ref(db, 'stats/visits'), v => (v || 0) + 1);
     }
 
-    // 실시간 stats 구독
+    /* ── stats 실시간 구독 ── */
     onValue(ref(db, 'stats'), snap => {
       const s = snap.val() || {};
-      const el = id => document.getElementById(id);
+      const $ = id => document.getElementById(id);
       const fmt = n => (n || 0).toLocaleString();
-      if (el('public-visit-count')) el('public-visit-count').textContent = fmt(s.visits);
-      if (el('stat-docs'))          el('stat-docs').textContent          = fmt(s.documents);
-      if (el('stat-dl'))            el('stat-dl').textContent            = fmt(s.downloads);
-      if (el('a-visits'))           el('a-visits').textContent           = fmt(s.visits);
-      if (el('a-downloads'))        el('a-downloads').textContent        = fmt(s.downloads);
-      if (el('a-docs'))             el('a-docs').textContent             = fmt(s.documents);
+      if ($('public-visit-count')) $('public-visit-count').textContent = fmt(s.visits);
+      if ($('stat-docs'))          $('stat-docs').textContent          = fmt(s.documents);
+      if ($('stat-dl'))            $('stat-dl').textContent            = fmt(s.downloads);
+      if ($('a-visits'))           $('a-visits').textContent           = fmt(s.visits);
+      if ($('a-downloads'))        $('a-downloads').textContent        = fmt(s.downloads);
+      if ($('a-docs'))             $('a-docs').textContent             = fmt(s.documents);
     });
 
-    // 전역 노출 — 기존 JS에서 호출
+    /* ── files 실시간 구독 ── */
+    onValue(ref(db, 'files'), snap => {
+      const data = snap.val();
+      window._files = data ? Object.values(data) : [];
+      window._files.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      if (typeof window.renderLibrary === 'function') window.renderLibrary();
+      const ap = document.getElementById('admin-panel');
+      if (ap && ap.classList.contains('active') && typeof window.renderAdminTable === 'function') window.renderAdminTable();
+    });
+
+    /* ── posts 실시간 구독 ── */
+    onValue(ref(db, 'posts'), snap => {
+      const data = snap.val();
+      window._posts = data ? Object.values(data) : [];
+      window._posts.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      if (typeof window.renderBoard === 'function') window.renderBoard();
+      const ap = document.getElementById('admin-panel');
+      if (ap && ap.classList.contains('active') && typeof window.renderAdminBoard === 'function') window.renderAdminBoard();
+    });
+
+    /* ── 전역 노출 ── */
     window._db  = db;
     window._ref = ref;
     window._tx  = runTransaction;
+    window._set = set;
+    window._rm  = remove;
   </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=D-DIN+Condensed:wght@400;700&family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet" />
+
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
     :root {
       --bg:#000; --bg2:#0a0a0a; --bg3:#111; --surface:#161616;
       --border:#2a2a2a; --white:#fff; --gray1:#e0e0e0; --gray2:#a0a0a0; --gray3:#606060;
-      --accent2:#005288;
-      --font-head:'Barlow Condensed',sans-serif; --font-body:'Barlow',sans-serif;
+      --accent:#005288;
+      --font-head:'Barlow Condensed',sans-serif;
+      --font-body:'Barlow',sans-serif;
     }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior:smooth; }
     body { background:var(--bg); color:var(--gray1); font-family:var(--font-body); font-size:16px; line-height:1.6; overflow-x:hidden; }
     a { color:inherit; text-decoration:none; }
     ul { list-style:none; }
@@ -58,8 +83,8 @@
     ::-webkit-scrollbar-track { background:var(--bg); }
     ::-webkit-scrollbar-thumb { background:var(--gray3); border-radius:2px; }
 
-    /* NAV */
-    #nav { position:fixed; top:0; left:0; width:100%; z-index:1000; display:flex; align-items:center; justify-content:space-between; padding:0 48px; height:64px; background:rgba(0,0,0,0.55); backdrop-filter:blur(18px); border-bottom:1px solid rgba(255,255,255,0.06); transition:background 0.3s; }
+    /* ── NAV ── */
+    #nav { position:fixed; top:0; left:0; width:100%; z-index:1000; display:flex; align-items:center; justify-content:space-between; padding:0 48px; height:64px; background:rgba(0,0,0,0.6); backdrop-filter:blur(18px); border-bottom:1px solid rgba(255,255,255,0.06); }
     .nav-logo { font-family:var(--font-head); font-size:22px; font-weight:700; letter-spacing:0.12em; color:var(--white); text-transform:uppercase; }
     .nav-logo span { color:var(--gray2); font-weight:300; }
     .nav-links { display:flex; gap:40px; }
@@ -68,14 +93,20 @@
     .nav-admin-btn { font-family:var(--font-head); font-size:12px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; padding:8px 20px; border:1px solid var(--gray3); color:var(--gray2); cursor:pointer; background:transparent; transition:all 0.2s; }
     .nav-admin-btn:hover { border-color:var(--white); color:var(--white); }
 
-    /* HERO */
+    /* ── CONSTRUCTION BANNER ── */
+    #construction-banner { position:fixed; top:64px; left:0; width:100%; z-index:999; background:rgba(10,10,10,0.92); backdrop-filter:blur(12px); border-bottom:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; padding:11px 48px; gap:12px; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    /* ── HERO ── */
     #hero { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; overflow:hidden; background:#000; }
-    .hero-bg { position:absolute; inset:0; background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,82,136,0.18) 0%, transparent 70%), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><defs><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter></defs><rect width="800" height="600" filter="url(%23n)" opacity="0.04"/></svg>'); background-size:cover; }
+    .hero-bg { position:absolute; inset:0; background:radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,82,136,0.18) 0%, transparent 70%); }
     .hero-lines { position:absolute; bottom:0; left:0; width:100%; height:220px; overflow:hidden; pointer-events:none; }
     .hero-lines svg { width:100%; height:100%; }
     .hero-content { position:relative; z-index:2; padding:0 24px; }
     .hero-tag { font-family:var(--font-head); font-size:13px; font-weight:600; letter-spacing:0.25em; text-transform:uppercase; color:var(--gray3); margin-bottom:28px; }
     .hero-title { font-family:var(--font-head); font-size:clamp(36px,5.5vw,72px); font-weight:700; letter-spacing:0.04em; text-transform:uppercase; color:var(--white); line-height:0.95; margin-bottom:32px; }
+    .hero-sub-tag { font-family:var(--font-head); font-size:clamp(16px,2vw,26px); font-weight:400; letter-spacing:0.3em; text-transform:uppercase; color:rgba(255,255,255,0.55); margin-bottom:36px; margin-top:-12px; font-style:italic; white-space:nowrap; }
+    .hero-sub { font-size:clamp(12px,1.3vw,15px); color:rgba(255,255,255,0.28); margin-bottom:40px; }
     .hero-cta-row { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
     .btn-primary { font-family:var(--font-head); font-size:13px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; padding:14px 40px; background:var(--white); color:var(--bg); border:none; cursor:pointer; transition:background 0.2s; }
     .btn-primary:hover { background:var(--gray1); }
@@ -84,36 +115,35 @@
     .hero-scroll { position:absolute; bottom:32px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--gray3); font-family:var(--font-head); font-size:11px; letter-spacing:0.2em; text-transform:uppercase; animation:bounce 2s infinite; }
     @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(6px)} }
 
-    /* STATS BAR */
+    /* ── STATS BAR ── */
     #stats-bar { background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border); display:flex; justify-content:center; flex-wrap:wrap; }
     .stat-item { padding:28px 60px; text-align:center; border-right:1px solid var(--border); flex:1; min-width:160px; }
     .stat-item:last-child { border-right:none; }
     .stat-num { font-family:var(--font-head); font-size:36px; font-weight:700; color:var(--white); letter-spacing:0.04em; }
     .stat-label { font-family:var(--font-head); font-size:11px; font-weight:400; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray3); margin-top:4px; }
 
-    /* SECTIONS */
+    /* ── SECTIONS ── */
     section { padding:100px 48px; max-width:1200px; margin:0 auto; }
     .section-eyebrow { font-family:var(--font-head); font-size:12px; font-weight:600; letter-spacing:0.25em; text-transform:uppercase; color:var(--gray3); margin-bottom:20px; }
     .section-title { font-family:var(--font-head); font-size:clamp(32px,4vw,52px); font-weight:700; letter-spacing:0.04em; text-transform:uppercase; color:var(--white); margin-bottom:20px; line-height:1; }
     .section-body { font-size:16px; font-weight:300; color:var(--gray2); max-width:680px; line-height:1.75; }
     .divider { width:100%; height:1px; background:var(--border); }
 
-    /* VISIT BANNER */
+    /* ── VISIT BANNER ── */
     #visit-banner { background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border); text-align:center; padding:28px 24px; }
     .visit-text { font-family:var(--font-head); font-size:13px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray3); }
     .visit-text span { color:var(--white); font-size:18px; font-weight:700; }
 
-    /* CARDS */
+    /* ── TOPIC CARDS ── */
     #topics { background:var(--bg2); }
-    #topics > section { max-width:1200px; margin:0 auto; }
     .cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1px; margin-top:60px; border:1px solid var(--border); }
-    .card { background:var(--surface); padding:40px 32px; transition:background 0.2s; cursor:default; }
+    .card { background:var(--surface); padding:40px 32px; transition:background 0.2s; }
     .card:hover { background:#1e1e1e; }
     .card-icon { width:40px; height:40px; margin-bottom:24px; opacity:0.6; }
     .card-title { font-family:var(--font-head); font-size:18px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--white); margin-bottom:12px; }
     .card-desc { font-size:14px; font-weight:300; color:var(--gray2); line-height:1.7; }
 
-    /* LIBRARY */
+    /* ── LIBRARY ── */
     #library { background:var(--bg); }
     .lib-header { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:24px; margin-bottom:48px; }
     .lib-search { display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); padding-bottom:8px; }
@@ -132,7 +162,7 @@
     .empty-lib { text-align:center; padding:80px 24px; font-family:var(--font-head); font-size:14px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray3); }
     .empty-lib p { margin-top:12px; font-size:13px; }
 
-    /* COMMUNITY BOARD */
+    /* ── COMMUNITY BOARD ── */
     #community { background:var(--bg2); }
     .board-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:32px; }
     .board-search { display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--border); padding-bottom:8px; }
@@ -146,17 +176,20 @@
     .board-table tbody tr { border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; transition:background 0.15s; }
     .board-table tbody tr:hover { background:var(--surface); }
     .board-table td { padding:16px; font-size:14px; color:var(--gray2); vertical-align:middle; }
-    .post-num { color:var(--gray3); font-size:13px; width:48px; }
+    .post-num { color:var(--gray3); font-size:13px; }
     .post-title-cell { color:var(--white); font-weight:400; display:flex; align-items:center; gap:10px; }
     .badge-private { font-family:var(--font-head); font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; padding:2px 8px; border:1px solid var(--gray3); color:var(--gray3); white-space:nowrap; }
     .badge-new { font-family:var(--font-head); font-size:10px; font-weight:700; letter-spacing:0.1em; color:#f0a500; white-space:nowrap; }
     .board-empty { text-align:center; padding:80px 24px; font-family:var(--font-head); font-size:13px; letter-spacing:0.15em; text-transform:uppercase; color:var(--gray3); }
+
+    /* ── OVERLAYS ── */
     .board-overlay { display:none; position:fixed; inset:0; z-index:1800; background:rgba(0,0,0,0.88); backdrop-filter:blur(10px); align-items:flex-start; justify-content:center; padding:80px 24px 60px; overflow-y:auto; }
     .board-overlay.active { display:flex; }
     .board-card { background:var(--surface); border:1px solid var(--border); width:100%; max-width:760px; animation:fadeUp 0.25s ease; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
     .board-card-header { display:flex; align-items:center; justify-content:space-between; padding:24px 32px; border-bottom:1px solid var(--border); }
     .board-card-title { font-family:var(--font-head); font-size:18px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--white); }
-    .board-card-close { background:transparent; border:none; color:var(--gray3); font-size:20px; cursor:pointer; line-height:1; padding:4px 8px; transition:color 0.2s; }
+    .board-card-close { background:transparent; border:none; color:var(--gray3); font-size:20px; cursor:pointer; padding:4px 8px; transition:color 0.2s; }
     .board-card-close:hover { color:var(--white); }
     .board-card-body { padding:32px; }
     .bf-field { margin-bottom:20px; }
@@ -191,7 +224,7 @@
     .comment-delete { margin-left:auto; background:transparent; border:none; color:var(--gray3); font-size:11px; cursor:pointer; transition:color 0.2s; padding:0 4px; }
     .comment-delete:hover { color:#ff5555; }
     .comment-form { display:flex; gap:8px; margin-top:20px; }
-    .comment-name-input { background:var(--bg3); border:1px solid var(--border); color:var(--white); font-family:var(--font-body); font-size:13px; padding:9px 12px; outline:none; width:130px; transition:border-color 0.2s; flex-shrink:0; }
+    .comment-name-input { background:var(--bg3); border:1px solid var(--border); color:var(--white); font-family:var(--font-body); font-size:13px; padding:9px 12px; outline:none; width:130px; flex-shrink:0; transition:border-color 0.2s; }
     .comment-name-input:focus { border-color:var(--gray2); }
     .comment-input { flex:1; background:var(--bg3); border:1px solid var(--border); color:var(--white); font-family:var(--font-body); font-size:13px; padding:9px 12px; outline:none; transition:border-color 0.2s; }
     .comment-input:focus { border-color:var(--gray2); }
@@ -206,7 +239,7 @@
     .form-error { color:#ff5555; font-size:12px; margin-top:10px; display:none; }
     .pw-hint { font-size:12px; color:var(--gray3); margin-top:6px; }
 
-    /* FOOTER */
+    /* ── FOOTER ── */
     footer { background:var(--bg2); border-top:1px solid var(--border); padding:60px 48px 32px; }
     .footer-top { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:40px; margin-bottom:48px; }
     .footer-brand { font-family:var(--font-head); font-size:20px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--white); }
@@ -218,11 +251,10 @@
     .footer-bottom { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; border-top:1px solid var(--border); padding-top:24px; }
     .footer-copy { font-size:12px; color:var(--gray3); font-weight:300; }
 
-    /* ADMIN MODAL */
+    /* ── ADMIN MODAL ── */
     .modal-overlay { display:none; position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; }
     .modal-overlay.active { display:flex; }
     .modal { background:var(--surface); border:1px solid var(--border); padding:48px; width:100%; max-width:520px; animation:fadeUp 0.25s ease; }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
     .modal-title { font-family:var(--font-head); font-size:22px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--white); margin-bottom:32px; }
     .modal-field { margin-bottom:24px; }
     .modal-field label { display:block; font-family:var(--font-head); font-size:11px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray3); margin-bottom:10px; }
@@ -235,7 +267,7 @@
     .btn-modal-ok:hover { background:var(--gray1); }
     .modal-error { color:#ff5555; font-size:13px; margin-top:12px; display:none; font-family:var(--font-body); }
 
-    /* ADMIN PANEL */
+    /* ── ADMIN PANEL ── */
     #admin-panel { display:none; position:fixed; inset:0; z-index:1500; background:var(--bg); overflow-y:auto; }
     #admin-panel.active { display:block; }
     .admin-nav { display:flex; align-items:center; justify-content:space-between; padding:0 48px; height:64px; background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
@@ -261,10 +293,9 @@
     .btn-delete { font-family:var(--font-head); font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; background:transparent; border:1px solid #3a1a1a; color:#ff5555; padding:5px 12px; cursor:pointer; transition:all 0.2s; }
     .btn-delete:hover { background:#3a1a1a; }
 
-    /* ANIMATIONS */
+    /* ── ANIMATIONS ── */
     .fade-in { opacity:0; transform:translateY(24px); transition:opacity 0.7s ease, transform 0.7s ease; }
     .fade-in.visible { opacity:1; transform:translateY(0); }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
     @media (max-width:768px) {
       #nav { padding:0 24px; }
@@ -275,6 +306,7 @@
       .admin-body { padding:24px; }
       .upload-form { grid-template-columns:1fr; }
       .admin-nav { padding:0 24px; }
+      .bf-row { grid-template-columns:1fr; }
     }
   </style>
 </head>
@@ -293,13 +325,12 @@
 </nav>
 
 <!-- CONSTRUCTION BANNER -->
-<div id="construction-banner" style="position:fixed;top:64px;left:0;width:100%;z-index:999;background:rgba(10,10,10,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;padding:11px 48px;gap:12px;">
+<div id="construction-banner">
   <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#f0a500;margin-right:4px;animation:blink 1.4s infinite;"></span>
   <p style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:#f0a500;margin:0;animation:blink 1.4s infinite;">
-    This site is currently under construction &nbsp;·&nbsp;
-    <span style="color:#f0a500;">Content is being updated</span>
+    This site is currently under construction &nbsp;·&nbsp; Content is being updated
   </p>
-  <button onclick="document.getElementById('construction-banner').style.display='none'" style="position:absolute;right:24px;background:transparent;border:none;cursor:pointer;color:#606060;font-size:18px;line-height:1;padding:4px 8px;transition:color 0.2s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='#606060'">✕</button>
+  <button onclick="document.getElementById('construction-banner').style.display='none'" style="position:absolute;right:24px;background:transparent;border:none;cursor:pointer;color:#606060;font-size:18px;line-height:1;padding:4px 8px;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#606060'">✕</button>
 </div>
 
 <!-- HERO -->
@@ -307,27 +338,23 @@
   <div class="hero-bg"></div>
   <div class="hero-lines">
     <svg viewBox="0 0 1440 220" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0,160 C240,80 480,200 720,120 C960,40 1200,160 1440,100 L1440,220 L0,220 Z" fill="rgba(0,82,136,0.08)" />
-      <path d="M0,180 C360,100 720,200 1080,140 C1260,110 1380,160 1440,150 L1440,220 L0,220 Z" fill="rgba(0,82,136,0.05)" />
+      <path d="M0,160 C240,80 480,200 720,120 C960,40 1200,160 1440,100 L1440,220 L0,220 Z" fill="rgba(0,82,136,0.08)"/>
+      <path d="M0,180 C360,100 720,200 1080,140 C1260,110 1380,160 1440,150 L1440,220 L0,220 Z" fill="rgba(0,82,136,0.05)"/>
       <path d="M0,200 C200,170 400,190 600,175 C800,160 1000,190 1200,180 C1320,174 1400,185 1440,180" stroke="rgba(255,255,255,0.04)" stroke-width="1" fill="none"/>
     </svg>
   </div>
   <div class="hero-content fade-in">
     <p class="hero-tag">Vehicle Dynamics Engineering</p>
     <h1 class="hero-title">Ride &amp; Handling<br>Base Camp</h1>
-    <p style="font-family:'Barlow Condensed',sans-serif;font-size:clamp(16px,2vw,26px);font-weight:400;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:36px;margin-top:-12px;font-style:italic;white-space:nowrap;">From Knowledge to Performance</p>
-    <p class="hero-sub" style="font-size:clamp(12px,1.3vw,15px);color:rgba(255,255,255,0.28);margin-bottom:40px;">
-      A centralized repository of technical documentation, research, and engineering insights in vehicle dynamics — built for professionals.
-    </p>
+    <p class="hero-sub-tag">From Knowledge to Performance</p>
+    <p class="hero-sub">A centralized repository of technical documentation, research, and engineering insights in vehicle dynamics — built for professionals.</p>
     <div class="hero-cta-row">
       <button class="btn-primary" onclick="document.getElementById('library').scrollIntoView({behavior:'smooth'})">Browse Resources</button>
       <button class="btn-outline" onclick="document.getElementById('topics').scrollIntoView({behavior:'smooth'})">Explore Topics</button>
     </div>
   </div>
   <div class="hero-scroll">
-    <svg width="16" height="24" viewBox="0 0 16 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <rect x="1" y="1" width="14" height="22" rx="7"/><circle cx="8" cy="8" r="2" fill="currentColor"/>
-    </svg>
+    <svg width="16" height="24" viewBox="0 0 16 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="14" height="22" rx="7"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg>
     Scroll
   </div>
 </section>
@@ -352,7 +379,7 @@
     <div class="card fade-in">
       <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="white" stroke-width="1.2"><rect x="6" y="18" width="28" height="6" rx="1"/><circle cx="12" cy="30" r="4"/><circle cx="28" cy="30" r="4"/><path d="M8 18 L12 10 L28 10 L32 18"/></svg>
       <div class="card-title">Suspension Design</div>
-      <p class="card-desc">Kinematic and compliance (K&C) analysis, spring/damper tuning, linkage geometry, and anti-dive/squat behaviors.</p>
+      <p class="card-desc">Kinematic and compliance (K&amp;C) analysis, spring/damper tuning, linkage geometry, and anti-dive/squat behaviors.</p>
     </div>
     <div class="card fade-in">
       <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="white" stroke-width="1.2"><path d="M8 32 L20 8 L32 32"/><path d="M13 24 L27 24"/></svg>
@@ -380,7 +407,7 @@
     </div>
     <div class="lib-search">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      <input type="text" id="search-input" placeholder="Search documents…" oninput="filterTable()" />
+      <input type="text" id="search-input" placeholder="Search documents…" oninput="renderLibrary()" />
     </div>
   </div>
   <div id="lib-content">
@@ -397,12 +424,13 @@
 </section>
 </div>
 
-<!-- STATS BAR — Resource Library 아래, Community 위 -->
+<!-- STATS BAR -->
 <div class="divider"></div>
 <div id="visit-banner">
   <p class="visit-text">Total Site Visits &nbsp;·&nbsp; <span id="public-visit-count">—</span></p>
 </div>
 <div id="stats-bar">
+  <div class="stat-item"><div class="stat-num" id="public-visit-count2">—</div><div class="stat-label">Visitors</div></div>
   <div class="stat-item"><div class="stat-num" id="stat-docs">0</div><div class="stat-label">Documents</div></div>
   <div class="stat-item"><div class="stat-num" id="stat-dl">0</div><div class="stat-label">Downloads</div></div>
   <div class="stat-item"><div class="stat-num">R&amp;H</div><div class="stat-label">Specialization</div></div>
@@ -520,7 +548,6 @@
     <button class="admin-nav-close" onclick="closeAdmin()">Exit Admin ✕</button>
   </div>
   <div class="admin-body">
-    <!-- 실제 통계 (Firebase 실시간) -->
     <div class="admin-stats-row">
       <div class="admin-stat"><div class="admin-stat-num" id="a-visits">—</div><div class="admin-stat-label">Total Visits</div></div>
       <div class="admin-stat"><div class="admin-stat-num" id="a-downloads">—</div><div class="admin-stat-label">Total Downloads</div></div>
@@ -578,83 +605,90 @@
 </div>
 
 <script>
-  /* ── STORAGE HELPERS ── */
-  function load(key, def) {
-    try {
-      const v = localStorage.getItem(key);
-      if (v === null || v === undefined || v === '') return def;
-      const parsed = JSON.parse(v);
-      return (parsed !== null && parsed !== undefined) ? parsed : def;
-    } catch { return def; }
+  /* ════════════════════════════════════════════
+     UTILITIES
+  ════════════════════════════════════════════ */
+  function esc(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
-  function save(key, val) {
-    try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) { console.warn('Storage save failed:', key, e); }
-  }
+  function today() { return new Date().toISOString().slice(0,10); }
 
-  /* ── DATA ── */
-  let files = load('vd_files', []);
-  if (!Array.isArray(files)) files = [];
-  let posts = load('vd_posts', []);
-  if (!Array.isArray(posts)) posts = [];
-
-  /* ── YEAR ── */
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  /* ── FIREBASE DOWNLOAD 카운터 ── */
+  /* ════════════════════════════════════════════
+     FIREBASE HELPERS
+     (window._db / _ref / _tx / _set / _rm 은
+      module 스크립트에서 주입됨 — 약간 지연 가능)
+  ════════════════════════════════════════════ */
+  function fbReady() { return !!(window._db && window._ref && window._tx && window._set && window._rm); }
+
+  // files
+  function fbSaveFile(f)   { if (fbReady()) window._set(window._ref(window._db,'files/'+f.id), f); }
+  function fbDeleteFile(id){ if (fbReady()) window._rm(window._ref(window._db,'files/'+id)); }
+
+  // posts
+  function fbSavePost(p)   { if (fbReady()) window._set(window._ref(window._db,'posts/'+p.id), p); }
+  function fbDeletePost(id){ if (fbReady()) window._rm(window._ref(window._db,'posts/'+id)); }
+
+  // stats
   function fbIncDownload() {
-    if (window._tx && window._ref && window._db) {
-      window._tx(window._ref(window._db, 'stats/downloads'), v => (v || 0) + 1);
-    }
+    if (fbReady()) window._tx(window._ref(window._db,'stats/downloads'), v => (v||0)+1);
   }
-  /* ── FIREBASE DOCUMENTS 동기화 ── */
-  function fbSyncDocs() {
-    if (window._tx && window._ref && window._db) {
-      window._tx(window._ref(window._db, 'stats/documents'), () => files.length);
-    }
+  function fbSyncDocCount() {
+    if (fbReady()) window._tx(window._ref(window._db,'stats/documents'), () => (window._files||[]).length);
   }
 
-  /* ── RENDER LIBRARY ── */
-  function renderLibrary() {
+  /* ════════════════════════════════════════════
+     RESOURCE LIBRARY
+  ════════════════════════════════════════════ */
+  window.renderLibrary = function() {
+    const files = window._files || [];
     const q = (document.getElementById('search-input')?.value || '').toLowerCase();
-    const filtered = files.filter(f => f.title.toLowerCase().includes(q) || f.cat.toLowerCase().includes(q));
-    const empty = document.getElementById('empty-msg');
-    const table = document.getElementById('lib-table');
-    const tbody = document.getElementById('lib-tbody');
+    const filtered = files.filter(f =>
+      f.title.toLowerCase().includes(q) || (f.cat||'').toLowerCase().includes(q)
+    );
+    const emptyEl = document.getElementById('empty-msg');
+    const tableEl = document.getElementById('lib-table');
+    const tbody   = document.getElementById('lib-tbody');
+
     if (filtered.length === 0) {
-      empty.style.display = 'block'; table.style.display = 'none';
-      empty.querySelector('p').textContent = files.length === 0 ? 'No documents uploaded yet.' : 'No results found.';
+      emptyEl.style.display = 'block';
+      tableEl.style.display = 'none';
+      emptyEl.querySelector('p').textContent =
+        files.length === 0 ? 'No documents uploaded yet.' : 'No results found.';
     } else {
-      empty.style.display = 'none'; table.style.display = 'table';
+      emptyEl.style.display = 'none';
+      tableEl.style.display = 'table';
       tbody.innerHTML = filtered.map(f => `
         <tr>
-          <td class="td-title">${escHtml(f.title)}</td>
-          <td><span class="td-tag">${escHtml(f.cat)}</span></td>
-          <td style="color:var(--gray3)">${escHtml((f.type||'').toUpperCase())}</td>
-          <td style="color:var(--gray3)">${f.date}</td>
+          <td class="td-title">${esc(f.title)}</td>
+          <td><span class="td-tag">${esc(f.cat||'')}</span></td>
+          <td style="color:var(--gray3)">${esc((f.type||'').toUpperCase())}</td>
+          <td style="color:var(--gray3)">${f.date||''}</td>
           <td style="color:var(--gray3)">${(f.dlCount||0).toLocaleString()}</td>
           <td><button class="dl-btn" onclick="downloadFile('${f.id}')">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
             </svg>Download</button></td>
         </tr>`).join('');
     }
-  }
+  };
 
-  function filterTable() { renderLibrary(); }
-
-  /* ── DOWNLOAD ── */
   function downloadFile(id) {
+    const files = window._files || [];
     const f = files.find(x => x.id === id);
     if (!f) return;
+    // 로컬 카운트 올리고 Firebase에 저장
     f.dlCount = (f.dlCount || 0) + 1;
-    save('vd_files', files);
-    fbIncDownload(); // Firebase 글로벌 카운터 +1
+    fbSaveFile(f);
+    fbIncDownload();
     if (f.url) window.open(f.url, '_blank');
-    renderLibrary();
-    if (document.getElementById('admin-panel').classList.contains('active')) renderAdminTable();
   }
 
-  /* ── UPLOAD ── */
+  /* ── Upload ── */
   function uploadDocument() {
     const title = document.getElementById('doc-title').value.trim();
     const url   = document.getElementById('doc-url').value.trim();
@@ -663,44 +697,284 @@
     if (!title) { alert('Please enter a document title.'); return; }
     if (!url)   { alert('Please enter a file URL.'); return; }
     if (!url.startsWith('http')) { alert('URL은 http(s)://로 시작해야 합니다.'); return; }
-    const entry = { id:'f_'+Date.now(), title, cat, type, url, date:new Date().toISOString().slice(0,10), dlCount:0 };
-    files.push(entry);
-    save('vd_files', files);
-    fbSyncDocs(); // Firebase documents 카운터 동기화
+
+    const entry = {
+      id: 'f_' + Date.now(),
+      ts: Date.now(),
+      title, cat, type, url,
+      date: today(),
+      dlCount: 0
+    };
+    fbSaveFile(entry);
+    fbSyncDocCount();
+
     document.getElementById('doc-title').value = '';
     document.getElementById('doc-url').value = '';
-    renderAdminTable();
-    renderLibrary();
+    // renderLibrary & renderAdminTable 는 onValue 콜백이 자동 호출
   }
 
-  /* ── DELETE FILE ── */
+  /* ── Delete File ── */
   function deleteFile(id) {
     if (!confirm('Delete this document?')) return;
-    files = files.filter(x => x.id !== id);
-    save('vd_files', files);
-    fbSyncDocs();
-    renderLibrary();
-    renderAdminTable();
+    fbDeleteFile(id);
+    setTimeout(fbSyncDocCount, 500);
   }
 
-  /* ── ADMIN TABLE ── */
-  function renderAdminTable() {
+  /* ── Admin Table ── */
+  window.renderAdminTable = function() {
+    const files = window._files || [];
     const tbody = document.getElementById('admin-tbody');
-    if (!files.length) { tbody.innerHTML = `<tr><td colspan="6" style="color:var(--gray3);padding:24px 16px;font-size:13px;">No documents yet.</td></tr>`; return; }
+    if (!tbody) return;
+    if (!files.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="color:var(--gray3);padding:24px 16px;font-size:13px;">No documents yet.</td></tr>`;
+      return;
+    }
     tbody.innerHTML = files.map(f => `
       <tr>
-        <td style="color:var(--white)">${escHtml(f.title)}</td>
-        <td>${escHtml(f.cat)}</td>
-        <td>${escHtml((f.type||'').toUpperCase())}</td>
-        <td>${f.date}</td>
+        <td style="color:var(--white)">${esc(f.title)}</td>
+        <td>${esc(f.cat||'')}</td>
+        <td>${esc((f.type||'').toUpperCase())}</td>
+        <td>${f.date||''}</td>
         <td>${(f.dlCount||0).toLocaleString()}</td>
         <td><button class="btn-delete" onclick="deleteFile('${f.id}')">Delete</button></td>
       </tr>`).join('');
+  };
+
+  /* ════════════════════════════════════════════
+     COMMUNITY BOARD
+  ════════════════════════════════════════════ */
+  let currentVisibility = 'public';
+
+  function setVisibility(v) {
+    currentVisibility = v;
+    document.getElementById('vis-public').classList.toggle('active', v === 'public');
+    document.getElementById('vis-private').classList.toggle('active', v === 'private');
+    document.getElementById('pw-hint-row').style.display = v === 'private' ? 'block' : 'none';
   }
 
-  /* ── ADMIN AUTH ── */
+  function openWriteForm() {
+    ['write-name','write-affil','write-subject','write-content','write-pw']
+      .forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('write-error').style.display = 'none';
+    setVisibility('public');
+    document.getElementById('write-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeWriteForm()  { document.getElementById('write-overlay').classList.remove('active'); document.body.style.overflow = ''; }
+  function closeViewOverlay(){ document.getElementById('view-overlay').classList.remove('active'); document.body.style.overflow = ''; }
+
+  function submitPost() {
+    const name    = document.getElementById('write-name').value.trim();
+    const affil   = document.getElementById('write-affil').value.trim();
+    const subject = document.getElementById('write-subject').value.trim();
+    const content = document.getElementById('write-content').value.trim();
+    const pw      = document.getElementById('write-pw').value;
+    const err     = document.getElementById('write-error');
+
+    if (!name)    { err.textContent='Please enter your name.';    err.style.display='block'; return; }
+    if (!subject) { err.textContent='Please enter a subject.';    err.style.display='block'; return; }
+    if (!content) { err.textContent='Please enter your content.'; err.style.display='block'; return; }
+    if (currentVisibility === 'private' && !pw) { err.textContent='Please set a password for private post.'; err.style.display='block'; return; }
+    err.style.display = 'none';
+
+    const post = {
+      id: 'p_' + Date.now(),
+      ts: Date.now(),
+      name, affil, subject, content,
+      visibility: currentVisibility,
+      pw: currentVisibility === 'private' ? pw : '',
+      date: today(),
+      comments: []
+    };
+    fbSavePost(post);
+    closeWriteForm();
+    // renderBoard 는 onValue 콜백이 자동 호출
+  }
+
+  window.renderBoard = function() {
+    const posts = window._posts || [];
+    const q = (document.getElementById('board-search-input')?.value || '').toLowerCase();
+    const filtered = posts.filter(p =>
+      p.subject.toLowerCase().includes(q) ||
+      p.name.toLowerCase().includes(q) ||
+      (p.visibility === 'public' && (p.content||'').toLowerCase().includes(q))
+    );
+    const tbody  = document.getElementById('board-tbody');
+    const empty  = document.getElementById('board-empty');
+    const table  = document.getElementById('board-table');
+    if (!tbody) return;
+
+    if (!filtered.length) {
+      empty.style.display = 'block';
+      table.style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    table.style.display = 'table';
+    const now = Date.now();
+    tbody.innerHTML = filtered.map((p, i) => {
+      const isNew = (now - (p.ts || 0)) < 86400000 * 2;
+      const comments = Array.isArray(p.comments) ? p.comments : [];
+      const titleCell = p.visibility === 'private'
+        ? `<span class="post-title-cell">🔒 ${esc(p.subject)} <span class="badge-private">Private</span>${isNew ? ' <span class="badge-new">NEW</span>' : ''}</span>`
+        : `<span class="post-title-cell">${esc(p.subject)}${isNew ? ' <span class="badge-new">NEW</span>' : ''}</span>`;
+      return `<tr onclick="openPost('${p.id}')">
+        <td class="post-num">${filtered.length - i}</td>
+        <td>${titleCell}</td>
+        <td style="color:var(--gray2);">${esc(p.name)}${p.affil ? `<br><span style="font-size:11px;color:var(--gray3);">${esc(p.affil)}</span>` : ''}</td>
+        <td style="color:var(--gray3);font-size:13px;">${p.date||''}</td>
+        <td style="color:var(--gray3);text-align:center;">${comments.length}</td>
+      </tr>`;
+    }).join('');
+  };
+
+  function openPost(id) {
+    const posts = window._posts || [];
+    const p = posts.find(x => x.id === id);
+    if (!p) return;
+    const isAdmin = document.getElementById('admin-panel').classList.contains('active');
+    if (p.visibility === 'private' && !isAdmin) { showPwGate(p); return; }
+    showPostView(p);
+  }
+
+  function showPwGate(p) {
+    document.getElementById('view-overlay-title').textContent = 'Private Post';
+    document.getElementById('view-overlay-body').innerHTML = `
+      <div class="pw-gate">
+        <div class="pw-gate-icon">🔒</div>
+        <p>This post is private. Enter the password to view.</p>
+        <div class="pw-gate-row">
+          <input class="bf-input" type="password" id="gate-pw-input" placeholder="Password"
+            onkeydown="if(event.key==='Enter')checkGatePw('${p.id}')" style="flex:1;" />
+          <button class="btn-post-submit" style="padding:10px 20px;" onclick="checkGatePw('${p.id}')">View</button>
+        </div>
+        <div id="gate-pw-error" style="color:#ff5555;font-size:12px;margin-top:10px;display:none;">Incorrect password.</div>
+      </div>`;
+    document.getElementById('view-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('gate-pw-input')?.focus(), 100);
+  }
+
+  function checkGatePw(id) {
+    const posts = window._posts || [];
+    const p = posts.find(x => x.id === id);
+    if (!p) return;
+    if (document.getElementById('gate-pw-input').value === p.pw) showPostView(p);
+    else document.getElementById('gate-pw-error').style.display = 'block';
+  }
+
+  function showPostView(p) {
+    const isAdmin = document.getElementById('admin-panel').classList.contains('active');
+    const comments = Array.isArray(p.comments) ? p.comments : [];
+    document.getElementById('view-overlay-title').textContent =
+      p.visibility === 'private' ? '🔒 ' + p.subject : p.subject;
+
+    const commentsHtml = comments.length === 0
+      ? `<div style="color:var(--gray3);font-size:13px;padding:16px 0;">No comments yet.</div>`
+      : comments.map(c => `
+          <div class="comment-item">
+            <div class="comment-meta">
+              <span class="comment-author">${esc(c.name)}</span>
+              <span class="comment-date">${c.date||''}</span>
+              ${isAdmin ? `<button class="comment-delete" onclick="deleteComment('${p.id}','${c.id}')">✕</button>` : ''}
+            </div>
+            <div class="comment-body">${esc(c.text)}</div>
+          </div>`).join('');
+
+    document.getElementById('view-overlay-body').innerHTML = `
+      <div class="post-view-meta">
+        <span class="post-view-author">${esc(p.name)}</span>
+        ${p.affil ? `<span class="post-view-affil">${esc(p.affil)}</span>` : ''}
+        <span class="post-view-date">${p.date||''}</span>
+        ${p.visibility === 'private' ? `<span class="badge-private">Private</span>` : ''}
+      </div>
+      <div class="post-view-body">${esc(p.content)}</div>
+      <div class="comment-section">
+        <div class="comment-section-title">Comments (${comments.length})</div>
+        <div id="comment-list-${p.id}">${commentsHtml}</div>
+        <div class="comment-form">
+          <input class="comment-name-input" type="text" id="c-name-${p.id}" placeholder="Name" />
+          <input class="comment-input" type="text" id="c-text-${p.id}" placeholder="Leave a comment…"
+            onkeydown="if(event.key==='Enter')addComment('${p.id}')" />
+          <button class="comment-submit" onclick="addComment('${p.id}')">Post</button>
+        </div>
+      </div>
+      <div class="post-view-actions">
+        <button class="btn-post-cancel" onclick="closeViewOverlay()">Close</button>
+        ${isAdmin ? `<button class="btn-post-delete" onclick="deletePost('${p.id}')">Delete Post</button>` : ''}
+      </div>`;
+    document.getElementById('view-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function addComment(postId) {
+    const posts = window._posts || [];
+    const p = posts.find(x => x.id === postId);
+    if (!p) return;
+    const nameEl = document.getElementById('c-name-' + postId);
+    const textEl = document.getElementById('c-text-' + postId);
+    const name = nameEl.value.trim();
+    const text = textEl.value.trim();
+    if (!name || !text) return;
+    if (!Array.isArray(p.comments)) p.comments = [];
+    p.comments.push({ id: 'c_' + Date.now(), name, text, date: today() });
+    fbSavePost(p);
+    nameEl.value = '';
+    textEl.value = '';
+    showPostView(p);
+    // renderBoard 는 onValue 콜백이 자동 호출
+  }
+
+  function deleteComment(postId, commentId) {
+    const posts = window._posts || [];
+    const p = posts.find(x => x.id === postId);
+    if (!p) return;
+    p.comments = (p.comments || []).filter(c => c.id !== commentId);
+    fbSavePost(p);
+    showPostView(p);
+  }
+
+  function deletePost(id) {
+    if (!confirm('Delete this post?')) return;
+    fbDeletePost(id);
+    closeViewOverlay();
+    // renderBoard & renderAdminBoard 는 onValue 콜백이 자동 호출
+  }
+
+  window.renderAdminBoard = function() {
+    const posts = window._posts || [];
+    const el = document.getElementById('admin-board-tbody');
+    if (!el) return;
+    if (!posts.length) {
+      el.innerHTML = `<tr><td colspan="7" style="color:var(--gray3);padding:24px 16px;font-size:13px;">No posts yet.</td></tr>`;
+      return;
+    }
+    el.innerHTML = posts.map((p, i) => {
+      const comments = Array.isArray(p.comments) ? p.comments : [];
+      return `<tr>
+        <td style="color:var(--gray3);">${posts.length - i}</td>
+        <td style="color:var(--white);">${esc(p.subject)}</td>
+        <td style="color:var(--gray2);">${esc(p.name)}</td>
+        <td>${p.visibility === 'private'
+          ? `<span style="color:var(--gray3);font-size:11px;font-family:var(--font-head);">🔒 PRIVATE</span>`
+          : `<span style="color:var(--gray2);font-size:11px;font-family:var(--font-head);">🌐 PUBLIC</span>`}</td>
+        <td style="color:var(--gray3);text-align:center;">${comments.length}</td>
+        <td style="color:var(--gray3);">${p.date||''}</td>
+        <td>
+          <button class="btn-delete" onclick="openPost('${p.id}')">View</button>
+          &nbsp;
+          <button class="btn-delete" onclick="deletePost('${p.id}')">Delete</button>
+        </td>
+      </tr>`;
+    }).join('');
+  };
+
+  /* ════════════════════════════════════════════
+     ADMIN AUTH
+  ════════════════════════════════════════════ */
   const ADMIN_USER = 'exer';
   const ADMIN_PASS = 'cise';
+
   function openAdminLogin() {
     document.getElementById('admin-modal').classList.add('active');
     document.getElementById('admin-user').value = '';
@@ -718,202 +992,25 @@
   function openAdmin() {
     document.getElementById('admin-panel').classList.add('active');
     document.body.style.overflow = 'hidden';
-    renderAdminTable();
-    renderAdminBoard();
+    window.renderAdminTable();
+    window.renderAdminBoard();
   }
   function closeAdmin() {
     document.getElementById('admin-panel').classList.remove('active');
     document.body.style.overflow = '';
   }
 
-  /* ── COMMUNITY BOARD ── */
-  let currentVisibility = 'public';
-  function setVisibility(v) {
-    currentVisibility = v;
-    document.getElementById('vis-public').classList.toggle('active', v === 'public');
-    document.getElementById('vis-private').classList.toggle('active', v === 'private');
-    document.getElementById('pw-hint-row').style.display = v === 'private' ? 'block' : 'none';
-  }
-  function openWriteForm() {
-    ['write-name','write-affil','write-subject','write-content','write-pw'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('write-error').style.display = 'none';
-    setVisibility('public');
-    document.getElementById('write-overlay').classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeWriteForm() { document.getElementById('write-overlay').classList.remove('active'); document.body.style.overflow = ''; }
-  function closeViewOverlay() { document.getElementById('view-overlay').classList.remove('active'); document.body.style.overflow = ''; }
-
-  function submitPost() {
-    const name = document.getElementById('write-name').value.trim();
-    const affil = document.getElementById('write-affil').value.trim();
-    const subject = document.getElementById('write-subject').value.trim();
-    const content = document.getElementById('write-content').value.trim();
-    const pw = document.getElementById('write-pw').value;
-    const err = document.getElementById('write-error');
-    if (!name)    { err.textContent='Please enter your name.';    err.style.display='block'; return; }
-    if (!subject) { err.textContent='Please enter a subject.';    err.style.display='block'; return; }
-    if (!content) { err.textContent='Please enter your content.'; err.style.display='block'; return; }
-    if (currentVisibility==='private' && !pw) { err.textContent='Please set a password for private post.'; err.style.display='block'; return; }
-    err.style.display = 'none';
-    posts.unshift({ id:'p_'+Date.now(), name, affil, subject, content, visibility:currentVisibility, pw:currentVisibility==='private'?pw:'', date:new Date().toISOString().slice(0,10), comments:[] });
-    save('vd_posts', posts);
-    closeWriteForm();
-    renderBoard();
-    if (document.getElementById('admin-panel').classList.contains('active')) renderAdminBoard();
-  }
-
-  function renderBoard() {
-    const q = (document.getElementById('board-search-input')?.value || '').toLowerCase();
-    const filtered = posts.filter(p => p.subject.toLowerCase().includes(q) || p.name.toLowerCase().includes(q) || (p.visibility==='public' && p.content.toLowerCase().includes(q)));
-    const tbody = document.getElementById('board-tbody');
-    const empty = document.getElementById('board-empty');
-    const table = document.getElementById('board-table');
-    if (!filtered.length) { empty.style.display='block'; table.style.display='none'; return; }
-    empty.style.display='none'; table.style.display='table';
-    const now = new Date();
-    tbody.innerHTML = filtered.map((p,i) => {
-      const isNew = (now - new Date(p.date)) < 86400000*2;
-      const titleCell = p.visibility==='private'
-        ? `<span class="post-title-cell">🔒 ${escHtml(p.subject)} <span class="badge-private">Private</span>${isNew?' <span class="badge-new">NEW</span>':''}</span>`
-        : `<span class="post-title-cell">${escHtml(p.subject)}${isNew?' <span class="badge-new">NEW</span>':''}</span>`;
-      return `<tr onclick="openPost('${p.id}')">
-        <td class="post-num">${filtered.length-i}</td>
-        <td>${titleCell}</td>
-        <td style="color:var(--gray2);">${escHtml(p.name)}${p.affil?`<br><span style="font-size:11px;color:var(--gray3);">${escHtml(p.affil)}</span>`:''}</td>
-        <td style="color:var(--gray3);font-size:13px;">${p.date}</td>
-        <td style="color:var(--gray3);text-align:center;">${p.comments.length}</td>
-      </tr>`;
-    }).join('');
-  }
-
-  function openPost(id) {
-    const p = posts.find(x => x.id===id);
-    if (!p) return;
-    const isAdminOpen = document.getElementById('admin-panel').classList.contains('active');
-    if (p.visibility==='private' && !isAdminOpen) { showPwGate(p); return; }
-    showPostView(p);
-  }
-  function showPwGate(p) {
-    document.getElementById('view-overlay-title').textContent = 'Private Post';
-    document.getElementById('view-overlay-body').innerHTML = `
-      <div class="pw-gate">
-        <div class="pw-gate-icon">🔒</div>
-        <p>This post is private. Enter the password to view.</p>
-        <div class="pw-gate-row">
-          <input class="bf-input" type="password" id="gate-pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkGatePw('${p.id}')" style="flex:1;" />
-          <button class="btn-post-submit" style="padding:10px 20px;" onclick="checkGatePw('${p.id}')">View</button>
-        </div>
-        <div id="gate-pw-error" style="color:#ff5555;font-size:12px;margin-top:10px;display:none;">Incorrect password.</div>
-      </div>`;
-    document.getElementById('view-overlay').classList.add('active');
-    document.body.style.overflow = 'hidden';
-    setTimeout(() => document.getElementById('gate-pw-input')?.focus(), 100);
-  }
-  function checkGatePw(id) {
-    const p = posts.find(x => x.id===id);
-    if (document.getElementById('gate-pw-input').value === p.pw) showPostView(p);
-    else document.getElementById('gate-pw-error').style.display = 'block';
-  }
-  function showPostView(p) {
-    const isAdminOpen = document.getElementById('admin-panel').classList.contains('active');
-    document.getElementById('view-overlay-title').textContent = p.visibility==='private' ? '🔒 '+p.subject : p.subject;
-    const commentsHtml = p.comments.length===0
-      ? `<div style="color:var(--gray3);font-size:13px;padding:16px 0;">No comments yet.</div>`
-      : p.comments.map(c => `
-          <div class="comment-item">
-            <div class="comment-meta">
-              <span class="comment-author">${escHtml(c.name)}</span>
-              <span class="comment-date">${c.date}</span>
-              ${isAdminOpen?`<button class="comment-delete" onclick="deleteComment('${p.id}','${c.id}')">✕</button>`:''}
-            </div>
-            <div class="comment-body">${escHtml(c.text)}</div>
-          </div>`).join('');
-    document.getElementById('view-overlay-body').innerHTML = `
-      <div class="post-view-meta">
-        <span class="post-view-author">${escHtml(p.name)}</span>
-        ${p.affil?`<span class="post-view-affil">${escHtml(p.affil)}</span>`:''}
-        <span class="post-view-date">${p.date}</span>
-        ${p.visibility==='private'?`<span class="badge-private">Private</span>`:''}
-      </div>
-      <div class="post-view-body">${escHtml(p.content)}</div>
-      <div class="comment-section">
-        <div class="comment-section-title">Comments (${p.comments.length})</div>
-        <div id="comment-list-${p.id}">${commentsHtml}</div>
-        <div class="comment-form">
-          <input class="comment-name-input" type="text" id="c-name-${p.id}" placeholder="Name" />
-          <input class="comment-input" type="text" id="c-text-${p.id}" placeholder="Leave a comment…" onkeydown="if(event.key==='Enter')addComment('${p.id}')" />
-          <button class="comment-submit" onclick="addComment('${p.id}')">Post</button>
-        </div>
-      </div>
-      <div class="post-view-actions">
-        <button class="btn-post-cancel" onclick="closeViewOverlay()">Close</button>
-        ${isAdminOpen?`<button class="btn-post-delete" onclick="deletePost('${p.id}')">Delete Post</button>`:''}
-      </div>`;
-    document.getElementById('view-overlay').classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-  function addComment(postId) {
-    const nameEl = document.getElementById('c-name-'+postId);
-    const textEl = document.getElementById('c-text-'+postId);
-    const name = nameEl.value.trim(), text = textEl.value.trim();
-    if (!name || !text) return;
-    const p = posts.find(x => x.id===postId);
-    if (!p) return;
-    p.comments.push({ id:'c_'+Date.now(), name, text, date:new Date().toISOString().slice(0,10) });
-    save('vd_posts', posts);
-    nameEl.value=''; textEl.value='';
-    showPostView(p); renderBoard();
-  }
-  function deleteComment(postId, commentId) {
-    const p = posts.find(x => x.id===postId);
-    if (!p) return;
-    p.comments = p.comments.filter(c => c.id!==commentId);
-    save('vd_posts', posts);
-    showPostView(p); renderAdminBoard();
-  }
-  function deletePost(id) {
-    if (!confirm('Delete this post?')) return;
-    posts = posts.filter(x => x.id!==id);
-    save('vd_posts', posts);
-    closeViewOverlay(); renderBoard(); renderAdminBoard();
-  }
-  function renderAdminBoard() {
-    const el = document.getElementById('admin-board-tbody');
-    if (!el) return;
-    if (!posts.length) { el.innerHTML=`<tr><td colspan="7" style="color:var(--gray3);padding:24px 16px;font-size:13px;">No posts yet.</td></tr>`; return; }
-    el.innerHTML = posts.map((p,i) => `
-      <tr>
-        <td style="color:var(--gray3);">${posts.length-i}</td>
-        <td style="color:var(--white);">${escHtml(p.subject)}</td>
-        <td style="color:var(--gray2);">${escHtml(p.name)}</td>
-        <td>${p.visibility==='private'?`<span style="color:var(--gray3);font-size:11px;font-family:var(--font-head);">🔒 PRIVATE</span>`:`<span style="color:var(--gray2);font-size:11px;font-family:var(--font-head);">🌐 PUBLIC</span>`}</td>
-        <td style="color:var(--gray3);text-align:center;">${p.comments.length}</td>
-        <td style="color:var(--gray3);">${p.date}</td>
-        <td>
-          <button class="btn-delete" onclick="openPost('${p.id}')">View</button>
-          &nbsp;
-          <button class="btn-delete" onclick="deletePost('${p.id}')">Delete</button>
-        </td>
-      </tr>`).join('');
-  }
-
-  /* ── SCROLL ANIMATIONS ── */
+  /* ════════════════════════════════════════════
+     SCROLL ANIMATIONS
+  ════════════════════════════════════════════ */
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold:0.12 });
+  }, { threshold: 0.12 });
   document.querySelectorAll('.fade-in').forEach(el => io.observe(el));
 
-  /* ── INIT ── */
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // Firebase docs 초기 동기화 (페이지 로드 시)
-  setTimeout(fbSyncDocs, 2000);
-
-  renderLibrary();
-  renderBoard();
+  /* ── 초기 렌더 (Firebase 데이터 아직 없을 때 빈 상태 표시) ── */
+  window.renderLibrary();
+  window.renderBoard();
 </script>
 </body>
 </html>
